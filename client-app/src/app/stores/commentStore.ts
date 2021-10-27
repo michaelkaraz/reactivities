@@ -4,6 +4,7 @@ import { ChatComment } from "../models/comment";
 import { store } from "./store";
 
 export default class CommentStore {
+   
     comments: ChatComment[] = [];
     hubConnection: HubConnection | null = null;
 
@@ -59,4 +60,6 @@ export default class CommentStore {
             console.log(error);
         }
     }
+
+
 }
