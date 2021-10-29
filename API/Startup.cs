@@ -63,30 +63,53 @@ namespace API
             app.UseXContentTypeOptions();
             app.UseReferrerPolicy(opt =>
             {
-                    opt.NoReferrer();
+                opt.NoReferrer(); //force the browser to not send referrer information
             });
-            app.UseXXssProtection(opt =>opt.EnabledWithBlockMode());
-            app.UseXfo(opt =>opt.Deny());
-            app.UseCsp(opt =>opt
-                .BlockAllMixedContent()
-                .StyleSources(s =>s.Self().CustomSources("https://fonts.googleapis.com","style-src"))
-                .FontSources(s =>s.Self().CustomSources("https://fonts.gstatic.com","data:"))
-                .FormActions(s =>s.Self())
-                .FrameAncestors(s =>s.Self())
-                .ImageSources(s =>s.Self().CustomSources("https://res.cloudinary.com"))
-                .ScriptSources(s =>s.Self().CustomSources("sha256-j5kUZ4xulBweONUZnKPjJ6GGUGhgafpKr/letLm6qSA="))
+            app.UseXXssProtection(opt => opt.EnabledWithBlockMode());//Cross site scripting protection
+            app.UseXfo(opt => opt.Deny());//prevent application from being used in a iframe (click bate)
+            app.UseCsp(opt => opt
+                .BlockAllMixedContent()//prevent http and https content on the site
+                .StyleSources(s => s.Self()
+                .CustomSources(
+                    "https://fonts.googleapis.com",
+                     "sha256-/epqQuRElKW1Z83z1Sg8Bs2MKi99Nrq41Z3fnS2Nrgk=",
+                    "sha256-2aahydUs+he2AO0g7YZuG67RGvfE9VXGbycVgIwMnBI=",
+                    "sha256-+oGcdj5BhO6SoiIGYIkPOMYi7d2h2Pp/bkJLBfYL+kk=",
+                    "sha256-r3x6D0yBZdyG8FpooR5ZxcsLuwuJ+pSQ/80YzwXS5IU=",
+                    "sha256-yChqzBduCCi4o4xdbXRXh4U/t1rP4UUUMJt+rB+ylUI="
+                    ))
+                .FontSources(s => s.Self()
+                .CustomSources(
+                    "https://fonts.gstatic.com", "data:"
+                    ))
+                .FormActions(s => s.Self())
+                .FrameAncestors(s => s.Self())
+                .ImageSources(s => s.Self()
+                .CustomSources(
+                    "https://res.cloudinary.com",
+                    "https://www.facebook.com",
+                    "https://platform-lookaside.fbsbx.com",
+                    "data:"
+                    ))
+                .ScriptSources(s => s.Self()
+                .CustomSources(
+                    "sha256-j5kUZ4xulBweONUZnKPjJ6GGUGhgafpKr/letLm6qSA=",
+                    "sha256-iZ5oJNrwcmS5bffNcp+q6Fxhiv2SUCiCD1uD3NhhLxA=",
+                    "https://connect.facebook.net"
+                    ))
                 );
-            
+
 
             if (env.IsDevelopment())
             {
-
                 app.UseSwagger();
                 app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "API v1"));
             }
-            else{
-                app.Use(async(context,next)=>{
-                    context.Response.Headers.Add("Strict-Transport-Security","max-age=31536000");
+            else
+            {
+                app.Use(async (context, next) =>
+                {
+                    context.Response.Headers.Add("Strict-Transport-Security", "max-age=31536000");
                     await next.Invoke();
                 });
             }
@@ -102,7 +125,6 @@ namespace API
 
             //note authentication must always come before authorization
             app.UseAuthentication();
-
             app.UseAuthorization();
 
             app.UseEndpoints(endpoints =>
